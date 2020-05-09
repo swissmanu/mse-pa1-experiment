@@ -1,0 +1,33 @@
+{
+  "name": "mse-pa1-experiment",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "Manuel Alabor <manuel@alabor.me>",
+  "license": "CC-BY-4.0",
+  "dependencies": {
+    "@types/jest": "^25.2.1",
+    "@typescript-eslint/eslint-plugin": "^2.31.0",
+    "@typescript-eslint/parser": "^2.31.0",
+    "eslint": "^7.0.0",
+    "html-webpack-plugin": "^4.3.0",
+    "jest": ">=25.0.0 <26.0.0",
+    "prettier": "^2.0.5",
+    "rxjs": "^6.5.5",
+    "ts-jest": "^25.5.1",
+    "ts-loader": "^7.0.4",
+    "typescript": "^3.8.3",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "scripts": {
+    "start": "webpack-dev-server --open --port 3000",
+    "test": "jest",
+    "test:one": "yarn test case-1",
+    "test:two": "yarn test case-2",
+    "lint": "eslint ./src --ext .js,.jsx,.ts,.tsx"
+  }
+}
