@@ -4,4 +4,4 @@ function main(): void {
   console.log('Test');
 }
 
-onReady(main);
+onReady(() => document.body);
