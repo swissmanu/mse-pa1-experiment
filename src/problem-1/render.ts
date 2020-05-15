@@ -22,7 +22,7 @@ export default function render(): RenderResult {
   const decrementButtonClicks = fromEvent(decrementButton, 'click');
   decrementButton.setAttribute('data-testid', 'decrement');
 
-  const input = html('input');
+  const input = html('input', { type: 'text' });
   const inputChanges = merge(
     fromEvent(input, 'keyup'),
     fromEvent(input, 'change')

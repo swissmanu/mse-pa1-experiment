@@ -20,6 +20,9 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].bundle.js',
   },
+  devServer: {
+    contentBase: path.join(__dirname, 'public'),
+  },
   plugins: [
     new HtmlWebpackPlugin({
       filename: 'one.html',
@@ -30,11 +33,6 @@ module.exports = {
       filename: 'two.html',
       template: path.join(__dirname, 'src', 'problem-2', 'index.html'),
       chunks: ['two'],
-    }),
-    new HtmlWebpackPlugin({
-      filename: 'index.html',
-      template: path.join(__dirname, 'public', 'index.html'),
-      chunks: [],
-    }),
+    })
   ],
 };
