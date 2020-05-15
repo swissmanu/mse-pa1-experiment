@@ -88,6 +88,7 @@ export default function render(): RenderResult {
           [input],
         ])
       ),
+      html('section', resetButton),
       html(
         'section',
         html('fieldset', [
@@ -99,7 +100,6 @@ export default function render(): RenderResult {
           ),
         ])
       ),
-      html('section', resetButton),
     ]),
     {
       increment: incrementButtonClicks,

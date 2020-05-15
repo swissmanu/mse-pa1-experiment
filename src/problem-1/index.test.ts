@@ -1,6 +1,8 @@
 import { fireEvent, queries, waitFor } from '@testing-library/dom';
 import problem1 from '.';
 
+const inputValue = 'hey there!';
+
 async function expectLogEntries(
   log: HTMLElement,
   expectedEntries: string[]
@@ -20,6 +22,7 @@ describe('Problem 1', () => {
   let incrementButton: HTMLButtonElement;
   let decrementButton: HTMLButtonElement;
   let input: HTMLInputElement;
+  let resetButton: HTMLButtonElement;
   let log: HTMLElement;
 
   beforeEach(async () => {
@@ -34,6 +37,10 @@ describe('Problem 1', () => {
       'decrement'
     )) as HTMLButtonElement;
     input = (await queries.findByTestId(app, 'input')) as HTMLInputElement;
+    resetButton = (await queries.findByTestId(
+      app,
+      'reset'
+    )) as HTMLButtonElement;
     log = await queries.findByTestId(app, 'log');
   });
 
@@ -72,8 +79,6 @@ describe('Problem 1', () => {
   });
 
   describe('Manual Input', () => {
-    const inputValue = 'hey there!';
-
     test('input field value is logged', async () => {
       input.value = inputValue;
       fireEvent.keyUp(input);
@@ -88,6 +93,35 @@ describe('Problem 1', () => {
       await expectLogEntries(log, [inputValue]);
       expect(incrementButton.disabled).toBe(true);
       expect(decrementButton.disabled).toBe(true);
+    });
+  });
+
+  describe('Reset', () => {
+    test('reverts the counter so it works again as after the first usage', async () => {
+      fireEvent.click(incrementButton);
+      fireEvent.click(incrementButton);
+      fireEvent.click(decrementButton);
+      await expectLogEntries(log, ['1', '2', '1']);
+
+      fireEvent.click(resetButton);
+
+      fireEvent.click(incrementButton);
+      fireEvent.click(incrementButton);
+      fireEvent.click(decrementButton);
+      fireEvent.click(decrementButton);
+      await expectLogEntries(log, ['0', '1', '2', '1']);
+    });
+
+    test('reverts the manual input so it works again as after the first usage', async () => {
+      input.value = inputValue;
+      fireEvent.keyUp(input);
+      await expectLogEntries(log, [inputValue]);
+
+      fireEvent.click(resetButton);
+
+      input.value = inputValue;
+      fireEvent.keyUp(input);
+      await expectLogEntries(log, [inputValue]);
     });
   });
 });
