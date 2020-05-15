@@ -1,4 +1,4 @@
-import { html, setAttr } from 'redom';
+import { html, text, setAttr } from 'redom';
 import { Observable, fromEvent, merge } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -14,29 +14,35 @@ type RenderResult = [
 ];
 
 export default function render(): RenderResult {
-  const incrementButton = html('button', { textContent: 'Increment' });
+  const incrementButton = html('button', {
+    textContent: 'Increment',
+    'data-testid': 'increment',
+  });
   const incrementButtonClicks = fromEvent(incrementButton, 'click');
-  incrementButton.setAttribute('data-testid', 'increment');
 
-  const decrementButton = html('button', { textContent: 'Decrement' });
+  const decrementButton = html('button', {
+    textContent: 'Decrement',
+    'data-testid': 'decrement',
+  });
   const decrementButtonClicks = fromEvent(decrementButton, 'click');
-  decrementButton.setAttribute('data-testid', 'decrement');
 
-  const input = html('input', { type: 'text' });
+  const input = html('input', { type: 'text', 'data-testid': 'input' });
   const inputChanges = merge(
     fromEvent(input, 'keyup'),
     fromEvent(input, 'change')
-  );
-  input.setAttribute('data-testid', 'input');
+  ).pipe(map((e) => (e.target as HTMLInputElement).value));
 
-  const display = html('span', { textContent: 'Ready' });
-  display.setAttribute('data-testid', 'display');
+  const display = html('span', {
+    textContent: 'Ready',
+    'data-testid': 'display',
+  });
 
   return [
     html('main', [
       html('fieldset', [
         html('legend', { textContent: 'Actions' }),
         incrementButton,
+        text(' '),
         decrementButton,
       ]),
       html('fieldset', [
@@ -50,7 +56,7 @@ export default function render(): RenderResult {
     ]),
     incrementButtonClicks,
     decrementButtonClicks,
-    inputChanges.pipe(map((e) => (e.target as HTMLInputElement).value)),
+    inputChanges,
     (v): void => setAttr(display, 'textContent', v),
   ];
 }
