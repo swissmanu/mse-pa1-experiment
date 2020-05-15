@@ -12,6 +12,7 @@ type Events = {
 type Update = {
   logValue: (value: string) => void;
   setButtonsEnabled: (enabled: boolean) => void;
+  setInput: (value: string) => void;
 };
 
 class LogItem implements RedomComponent {
@@ -67,14 +68,23 @@ export default function render(): RenderResult {
     setAttr(incrementButton, { disabled: !enabled });
     setAttr(decrementButton, { disabled: !enabled });
   };
+  const setInput = (value: string): void => {
+    setAttr(input, 'value', value);
+  };
 
   return [
     html('main', [
       html(
+        'p',
+        text(
+          'Count up and down using the buttons, show the entered text from the input field and reset using the reset button. What do you observe once you have reset? How does the output behave? Can you find the problem?'
+        )
+      ),
+      html(
         'section',
         html('fieldset', [
           html('legend', {
-            textContent: 'Counter: Count up and down using buttons',
+            textContent: 'Counter',
           }),
           incrementButton,
           text(' '),
@@ -84,7 +94,7 @@ export default function render(): RenderResult {
       html(
         'section',
         html('fieldset', [
-          html('legend', { textContent: 'Manual Input: Show entered text' }),
+          html('legend', { textContent: 'Manual Input' }),
           [input],
         ])
       ),
@@ -109,6 +119,7 @@ export default function render(): RenderResult {
     },
     {
       logValue,
+      setInput,
       setButtonsEnabled,
     },
   ];

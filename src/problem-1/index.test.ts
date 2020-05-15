@@ -104,6 +104,8 @@ describe('Problem 1', () => {
       await expectLogEntries(log, ['1', '2', '1']);
 
       fireEvent.click(resetButton);
+      expect(incrementButton.disabled).toBe(false);
+      expect(decrementButton.disabled).toBe(false);
 
       fireEvent.click(incrementButton);
       fireEvent.click(incrementButton);
@@ -118,6 +120,9 @@ describe('Problem 1', () => {
       await expectLogEntries(log, [inputValue]);
 
       fireEvent.click(resetButton);
+      expect(incrementButton.disabled).toBe(false);
+      expect(decrementButton.disabled).toBe(false);
+      expect(input.value).toEqual('');
 
       input.value = inputValue;
       fireEvent.keyUp(input);
