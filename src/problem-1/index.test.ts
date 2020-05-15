@@ -1,68 +1,93 @@
-import { fireEvent, queries } from '@testing-library/dom';
+import { fireEvent, queries, waitFor } from '@testing-library/dom';
 import problem1 from '.';
 
+async function expectLogEntries(
+  log: HTMLElement,
+  expectedEntries: string[]
+): Promise<void> {
+  await waitFor(() =>
+    expect(() => queries.getAllByTestId(log, 'logEntry')).not.toThrow()
+  );
+
+  expect(
+    queries
+      .getAllByTestId(log, 'logEntry')
+      .map(({ textContent }) => textContent)
+  ).toEqual(expectedEntries);
+}
+
 describe('Problem 1', () => {
-  let incrementButton: HTMLElement;
-  let decrementButton: HTMLElement;
+  let incrementButton: HTMLButtonElement;
+  let decrementButton: HTMLButtonElement;
   let input: HTMLInputElement;
-  let valueDisplay: HTMLElement;
+  let log: HTMLElement;
 
   beforeEach(async () => {
     const app = problem1();
 
-    incrementButton = await queries.findByTestId(app, 'increment');
-    decrementButton = await queries.findByTestId(app, 'decrement');
+    incrementButton = (await queries.findByTestId(
+      app,
+      'increment'
+    )) as HTMLButtonElement;
+    decrementButton = (await queries.findByTestId(
+      app,
+      'decrement'
+    )) as HTMLButtonElement;
     input = (await queries.findByTestId(app, 'input')) as HTMLInputElement;
-    valueDisplay = await queries.findByTestId(app, 'display');
+    log = await queries.findByTestId(app, 'log');
   });
 
-  test('shows "Ready" at start', () => {
-    expect(valueDisplay.textContent).toEqual('Ready');
+  test('shows no logged values at start', () => {
+    expect(log.childNodes.length).toBe(0);
   });
 
-  describe('actions', () => {
-    test('increment button should increment shown value', async () => {
+  describe('Counter', () => {
+    test('increment button should log a incremented', async () => {
       fireEvent.click(incrementButton);
-      expect(valueDisplay.textContent).toEqual('1');
-
       fireEvent.click(incrementButton);
-      expect(valueDisplay.textContent).toEqual('2');
-
       fireEvent(incrementButton, new MouseEvent('dblclick', { button: 0 }));
-      expect(valueDisplay.textContent).toEqual('2');
+
+      await expectLogEntries(log, ['2', '1']);
     });
 
-    test('decrement button should decrement shown value', async () => {
+    test('decrement button should log a decremented value', async () => {
       fireEvent.click(decrementButton);
-      expect(valueDisplay.textContent).toEqual('-1');
-
       fireEvent.click(decrementButton);
-      expect(valueDisplay.textContent).toEqual('-2');
-
       fireEvent(decrementButton, new MouseEvent('dblclick', { button: 0 }));
-      expect(valueDisplay.textContent).toEqual('-2');
+
+      const logEntries = queries
+        .getAllByTestId(log, 'logEntry')
+        .map(({ textContent }) => textContent);
+      expect(logEntries).toEqual(['-2', '-1']);
     });
 
     test('increment and decrement button can be used simultaneously', async () => {
       fireEvent.click(decrementButton);
-      expect(valueDisplay.textContent).toEqual('-1');
-
       fireEvent.click(incrementButton);
-      expect(valueDisplay.textContent).toEqual('0');
       fireEvent.click(incrementButton);
-      expect(valueDisplay.textContent).toEqual('1');
-
       fireEvent.click(decrementButton);
-      expect(valueDisplay.textContent).toEqual('0');
+
+      await expectLogEntries(log, ['0', '1', '0', '-1']);
     });
   });
 
   describe('Manual Input', () => {
-    test('input field value is shown in display', async () => {
-      const inputValue = 'hey there!';
+    const inputValue = 'hey there!';
+
+    test('input field value is logged', async () => {
       input.value = inputValue;
-      fireEvent.change(input);
-      expect(valueDisplay.textContent).toEqual(inputValue);
+      fireEvent.keyUp(input);
+
+      await expectLogEntries(log, [inputValue]);
+    });
+
+    test('changing the input field disables the counter buttons', async () => {
+      input.value = inputValue;
+      fireEvent.keyUp(input);
+
+      await expectLogEntries(log, [inputValue]);
+      expect(incrementButton.disabled).toBe(true);
+      expect(decrementButton.disabled).toBe(true);
     });
   });
 });

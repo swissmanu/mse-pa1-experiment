@@ -1,20 +1,26 @@
-import { map, scan } from 'rxjs/operators';
+import { map, tap, flatMap, startWith } from 'rxjs/operators';
 import onReady from '../shared';
 import render from './render';
 import { merge } from 'rxjs';
+import counter from './counter';
 
 export default function problem1(): HTMLElement {
-  const [view, increment, decrement, inputChange, showValue] = render();
+  const [view, events, update] = render();
+  const { increment, decrement, input, reset } = events;
+  const { logValue, setButtonsEnabled } = update;
 
-  inputChange.subscribe((v) => showValue(v));
-
-  merge(increment.pipe(map(() => 1)), decrement.pipe(map(() => -1)))
+  reset
     .pipe(
-      scan((acc, i) => (acc = acc + i), 0),
-      map((numberOfClicks) => `${numberOfClicks}`)
+      startWith(null),
+      flatMap(() =>
+        merge(
+          input.pipe(tap(() => setButtonsEnabled(false))),
+          counter(increment, decrement).pipe(map((count) => `${count}`))
+        )
+      )
     )
     .subscribe((v) => {
-      showValue(v);
+      logValue(v);
     });
 
   return view;

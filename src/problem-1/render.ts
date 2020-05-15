@@ -1,19 +1,35 @@
-import { html, text, setAttr } from 'redom';
-import { Observable, fromEvent, merge } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { html, list, RedomComponent, setAttr, setChildren, text } from 'redom';
+import { fromEvent, Observable } from 'rxjs';
+import { debounceTime, map, tap } from 'rxjs/operators';
 
-type ButtonClicks = Observable<Event>;
-type InputChanges = Observable<string>;
-type ShowValueFn = (value: string) => void;
-type RenderResult = [
-  HTMLElement,
-  ButtonClicks,
-  ButtonClicks,
-  InputChanges,
-  ShowValueFn
-];
+type RenderResult = [HTMLElement, Events, Update];
+type Events = {
+  increment: Observable<Event>;
+  decrement: Observable<Event>;
+  input: Observable<string>;
+  reset: Observable<Event>;
+};
+type Update = {
+  logValue: (value: string) => void;
+  setButtonsEnabled: (enabled: boolean) => void;
+};
+
+class LogItem implements RedomComponent {
+  public el: HTMLElement;
+
+  constructor() {
+    this.el = html('li', { 'data-testid': 'logEntry' });
+  }
+
+  update(data: string): void {
+    setChildren(this.el, [html('code', data)]);
+  }
+}
 
 export default function render(): RenderResult {
+  let loggedValues: string[] = [];
+  const logDisplay = list(html('ul', { 'data-testid': 'log' }), LogItem);
+
   const incrementButton = html('button', {
     textContent: 'Increment',
     'data-testid': 'increment',
@@ -27,36 +43,73 @@ export default function render(): RenderResult {
   const decrementButtonClicks = fromEvent(decrementButton, 'click');
 
   const input = html('input', { type: 'text', 'data-testid': 'input' });
-  const inputChanges = merge(
-    fromEvent(input, 'keyup'),
-    fromEvent(input, 'change')
-  ).pipe(map((e) => (e.target as HTMLInputElement).value));
+  const inputChanges = fromEvent(input, 'keyup').pipe(
+    debounceTime(300),
+    map((e) => (e.target as HTMLInputElement).value)
+  );
 
-  const display = html('span', {
-    textContent: 'Ready',
-    'data-testid': 'display',
+  const resetButton = html('button', {
+    textContent: 'Reset',
+    'data-testid': 'reset',
   });
+  const resetButtonClicks = fromEvent(resetButton, 'click').pipe(
+    tap(() => {
+      loggedValues = [];
+      logDisplay.update(loggedValues);
+    })
+  );
+
+  const logValue = (v: string): void => {
+    loggedValues = [v, ...loggedValues];
+    logDisplay.update(loggedValues);
+  };
+  const setButtonsEnabled = (enabled: boolean): void => {
+    setAttr(incrementButton, { disabled: !enabled });
+    setAttr(decrementButton, { disabled: !enabled });
+  };
 
   return [
     html('main', [
-      html('fieldset', [
-        html('legend', { textContent: 'Actions' }),
-        incrementButton,
-        text(' '),
-        decrementButton,
-      ]),
-      html('fieldset', [
-        html('legend', { textContent: 'Manual Input' }),
-        input,
-      ]),
-      html('fieldset', [
-        html('legend', { textContent: 'Result Display' }),
-        display,
-      ]),
+      html(
+        'section',
+        html('fieldset', [
+          html('legend', {
+            textContent: 'Counter: Count up and down using buttons',
+          }),
+          incrementButton,
+          text(' '),
+          decrementButton,
+        ])
+      ),
+      html(
+        'section',
+        html('fieldset', [
+          html('legend', { textContent: 'Manual Input: Show entered text' }),
+          [input],
+        ])
+      ),
+      html(
+        'section',
+        html('fieldset', [
+          html('legend', { textContent: 'Output Log' }),
+          html(
+            'div',
+            { style: { 'max-height': '160px', 'overflow-y': 'scroll' } },
+            logDisplay
+          ),
+        ])
+      ),
+      html('section', resetButton),
     ]),
-    incrementButtonClicks,
-    decrementButtonClicks,
-    inputChanges,
-    (v): void => setAttr(display, 'textContent', v),
+    {
+      increment: incrementButtonClicks,
+      decrement: decrementButtonClicks,
+      input: inputChanges,
+      reset: resetButtonClicks,
+    },
+    {
+      logValue,
+      setButtonsEnabled,
+    },
   ];
 }
