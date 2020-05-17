@@ -1,7 +1,40 @@
+import { defer } from 'rxjs';
+import { flatMap, startWith, tap } from 'rxjs/operators';
+import counter from '../problem-1/counter';
 import onReady from '../shared';
+import API, { APIInterface } from './api';
+import render from './render';
 
-function main(): void {
-  console.log('Test');
+export default function problem2(api: APIInterface = new API()): HTMLElement {
+  const [view, events, update] = render();
+  const { nextPage, prevPage } = events;
+  const {
+    showTodos,
+    setNextPageButtonEnabled,
+    setPrevPageButtonEnabled,
+    setCurrentPage,
+  } = update;
+
+  counter(nextPage, prevPage, 1)
+    .pipe(
+      startWith(1),
+      tap(() => {
+        setNextPageButtonEnabled(false);
+        setPrevPageButtonEnabled(false);
+      }),
+      flatMap((page) =>
+        defer(() => api.getTodos(page)).pipe(
+          tap(() => {
+            setNextPageButtonEnabled(page < 20);
+            setPrevPageButtonEnabled(page > 1);
+            setCurrentPage(page);
+          })
+        )
+      )
+    )
+    .subscribe(showTodos);
+
+  return view;
 }
 
-onReady(() => document.body);
+onReady(problem2);
