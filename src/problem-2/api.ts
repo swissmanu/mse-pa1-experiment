@@ -15,9 +15,12 @@ function randomInt(min: number, max: number): number {
 export interface APIInterface {
   getNumberOfPages(): Promise<number>;
   getTodos(page?: number): Promise<Todo[]>;
+  createTodo(todo: Omit<Todo, 'id' | 'completed'>): Promise<Todo>;
 }
 
 class API implements APIInterface {
+  private data: Todo[] = [...todosFixture];
+
   async getNumberOfPages(): Promise<number> {
     return new Promise((resolve) =>
       setTimeout(
@@ -36,9 +39,23 @@ class API implements APIInterface {
       const start = (page - 1) * PAGE_SIZE;
       const end = start + PAGE_SIZE;
       setTimeout(
-        () => resolve(todosFixture.slice(start, end)),
+        () => resolve(this.data.slice(start, end)),
         randomInt(800, 2000) // simulate network
       );
+    });
+  }
+
+  async createTodo(todo: Omit<Todo, 'id' | 'completed'>): Promise<Todo> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const newTodo: Todo = {
+          id: `${randomInt(100000, 10000000)}`,
+          completed: false,
+          ...todo,
+        };
+        this.data = [newTodo, ...this.data];
+        resolve(newTodo);
+      }, randomInt(500, 1000));
     });
   }
 }
