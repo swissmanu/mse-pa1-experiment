@@ -9,8 +9,9 @@ describe('Problem 2', () => {
 
   beforeEach(async () => {
     mockedApi = {
-      getTodos: jest.fn<Promise<Todo[]>, [number]>((page = 1) => {
-        return Promise.resolve([]);
+      getNumberOfPages: jest.fn(async () => 0),
+      getTodos: jest.fn<Promise<Todo[]>, [number]>(async (page = 1) => {
+        return [];
       }),
     };
     const app = problem2(mockedApi);

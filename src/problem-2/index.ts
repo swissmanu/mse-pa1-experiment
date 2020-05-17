@@ -15,23 +15,28 @@ export default function problem2(api: APIInterface = new API()): HTMLElement {
     setCurrentPage,
   } = update;
 
-  counter(nextPage, prevPage, 1)
+  defer(() => api.getNumberOfPages())
     .pipe(
-      startWith(1),
-      tap(() => {
-        setNextPageButtonEnabled(false);
-        setPrevPageButtonEnabled(false);
-      }),
-      flatMap((page) =>
-        defer(() => api.getTodos(page)).pipe(
+      flatMap((numberOfPages) =>
+        counter(nextPage, prevPage, 1).pipe(
+          startWith(1),
           tap(() => {
-            setNextPageButtonEnabled(page < 20);
-            setPrevPageButtonEnabled(page > 1);
-            setCurrentPage(page);
-          })
+            setNextPageButtonEnabled(false);
+            setPrevPageButtonEnabled(false);
+          }),
+          flatMap((page) =>
+            defer(() => api.getTodos(page)).pipe(
+              tap(() => {
+                setNextPageButtonEnabled(page < numberOfPages);
+                setPrevPageButtonEnabled(page > 1);
+                setCurrentPage(page);
+              })
+            )
+          )
         )
       )
     )
+
     .subscribe(showTodos);
 
   return view;
