@@ -1,4 +1,6 @@
-# Controlled Experiment: Debugging of Modern RxJS-based Frontend Web Applications
+# Controlled Experiment "Validate Debugging Techniques"
+
+> This repository is part of my master's study research regarding "Debugging of Modern RxJS-based Frontend Web Applications". It contains the source code for two problems used during the controlled experiment to validate the debugging techniques software engineers apply when debugging RxJS-based programs.
 
 ## Commands
 
@@ -13,4 +15,4 @@ yarn test problem-2 --watch  # Rerun tests upon changes for problem 2
 
 ## References
 
-- Paper: https://github.com/swissmanu/mse-pa1-paper
+- Related Workshop Paper: https://github.com/swissmanu/mse-pa1-paper
