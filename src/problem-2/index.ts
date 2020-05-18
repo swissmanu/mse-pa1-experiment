@@ -1,12 +1,12 @@
-import { defer, from } from 'rxjs';
-import { flatMap, startWith, tap, switchMap } from 'rxjs/operators';
-import counter from '../problem-1/counter';
-import onReady from '../shared';
+import { defer } from 'rxjs';
+import { flatMap, startWith, switchMap, tap } from 'rxjs/operators';
+import counter from '../shared/counter';
+import onReady from '../shared/onReady';
 import API, { APIInterface } from './api';
-import render from './render';
+import createUI from './ui';
 
 export default function problem2(api: APIInterface = new API()): HTMLElement {
-  const [view, events, update] = render();
+  const [ui, events, update] = createUI();
   const { nextPage, prevPage, createNewTodo } = events;
   const {
     showTodos,
@@ -43,7 +43,7 @@ export default function problem2(api: APIInterface = new API()): HTMLElement {
     )
     .subscribe(showTodos);
 
-  return view;
+  return ui;
 }
 
 onReady(problem2);

@@ -3,7 +3,7 @@ import { fromEvent, Observable } from 'rxjs';
 import { Todo } from './api';
 import { filter, map } from 'rxjs/operators';
 
-type RenderResult = [HTMLElement, Events, Update];
+type UI = [HTMLElement, Events, Update];
 type Events = {
   nextPage: Observable<Event>;
   prevPage: Observable<Event>;
@@ -33,7 +33,7 @@ class TodoItem implements RedomComponent {
   }
 }
 
-export default function render(): RenderResult {
+export default function createUI(): UI {
   const nextPageButton = html('button', { 'data-testid': 'nextPage' }, 'Next');
   const setNextPageButtonEnabled: Update['setNextPageButtonEnabled'] = (
     enabled
