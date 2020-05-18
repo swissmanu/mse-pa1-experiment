@@ -1,7 +1,6 @@
 {
   "name": "mse-pa1-experiment",
-  "version": "0.0.1",
-  "main": "index.js",
+  "version": "1.0.0",
   "author": "Manuel Alabor <manuel@alabor.me>",
   "license": "CC-BY-4.0",
   "dependencies": {
