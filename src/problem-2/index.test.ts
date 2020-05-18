@@ -5,6 +5,7 @@ import createMockedApi from './api.mock';
 
 describe('Problem 2', () => {
   describe('Integration Test', () => {
+    let app: HTMLElement;
     let mockedApi: APIInterface;
     let nextPageButton: HTMLButtonElement;
     let prevPageButton: HTMLButtonElement;
@@ -14,7 +15,7 @@ describe('Problem 2', () => {
 
     beforeEach(async () => {
       mockedApi = createMockedApi();
-      const app = problem2(mockedApi);
+      app = problem2(mockedApi);
 
       nextPageButton = (await queries.findByTestId(
         app,
@@ -44,8 +45,8 @@ describe('Problem 2', () => {
       await waitFor(() => expect(todoList.children).toHaveLength(10));
     });
 
-    describe('changing pages', () => {
-      test('always ensures that the prev and next button has an appropriate enabled states', async () => {
+    describe('when changing pages,', () => {
+      test('the prev and next buttons do always have an appropriate enabled/disabled state', async () => {
         expect(prevPageButton.disabled).toBe(true);
         expect(nextPageButton.disabled).toBe(false);
 
@@ -78,16 +79,21 @@ describe('Problem 2', () => {
 
       test('being on another page than the first creates the todo and shows it on the first page', async () => {
         fireEvent.click(nextPageButton);
+        await waitFor(() => expect(currentPage.textContent).toEqual('Page: 2'));
 
-        createTodoInput.value = title;
+        createTodoInput.value = '2';
         fireEvent.keyUp(createTodoInput, { key: 'Enter' });
-        expect(createTodoInput.value).toEqual('');
-        expect(mockedApi.createTodo).toHaveBeenCalledWith({ title });
-        await waitFor(() =>
-          expect(mockedApi.getNumberOfPages).toHaveBeenCalledTimes(2)
-        );
-        await waitFor(() => within(todoList).getByText(title));
-        expect(currentPage.textContent).toEqual('Page: 1');
+        await waitFor(() => within(todoList).getByText('2'));
+        await waitFor(() => expect(currentPage.textContent).toEqual('Page: 1'));
+
+        fireEvent.click(nextPageButton);
+        fireEvent.click(nextPageButton);
+        await waitFor(() => expect(currentPage.textContent).toEqual('Page: 3'));
+
+        createTodoInput.value = '3';
+        fireEvent.keyUp(createTodoInput, { key: 'Enter' });
+        await waitFor(() => within(todoList).getByText('3'));
+        await waitFor(() => expect(currentPage.textContent).toEqual('Page: 1'));
       });
     });
 
@@ -124,8 +130,9 @@ describe('Problem 2', () => {
       test('stays on the page of the deleted todo', async () => {
         fireEvent.click(nextPageButton);
         await waitFor(() => expect(currentPage.textContent).toEqual('Page: 2'));
-        const [firstTodo, secondTodo] = within(todoList).getAllByTestId('todo');
-        const { textContent: secondTodoTitle } = secondTodo;
+        const [firstTodo, { textContent: secondTodoTitle }] = within(
+          todoList
+        ).getAllByTestId('todo');
         const deleteButton = within(firstTodo).getByTestId('delete');
         fireEvent.click(deleteButton);
 
@@ -136,6 +143,27 @@ describe('Problem 2', () => {
           expect(firstTodoAfterUpdate.textContent).toEqual(secondTodoTitle);
         });
         expect(currentPage.textContent).toEqual('Page: 2');
+      });
+
+      test('works for a just created todo', async () => {
+        const [{ textContent: firstTodoBeforeUpdate }] = within(
+          todoList
+        ).getAllByTestId('todo');
+        const title = 'do it!';
+        createTodoInput.value = title;
+        fireEvent.keyUp(createTodoInput, { key: 'Enter' });
+
+        await waitFor(() => within(todoList).getByText(title));
+        const justCreatedTodo = within(todoList).getByText(title);
+        fireEvent.click(within(justCreatedTodo).getByTestId('delete'));
+        await waitFor(() => {
+          const [firstTodoAfterUpdate] = within(
+            queries.getByTestId(app, 'todoList')
+          ).getAllByTestId('todo');
+          expect(firstTodoAfterUpdate.textContent).toEqual(
+            firstTodoBeforeUpdate
+          );
+        });
       });
     });
   });

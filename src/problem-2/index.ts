@@ -1,12 +1,5 @@
 import { defer, merge, of } from 'rxjs';
-import {
-  debounceTime,
-  distinctUntilChanged,
-  flatMap,
-  startWith,
-  switchMap,
-  tap,
-} from 'rxjs/operators';
+import { distinctUntilChanged, flatMap, startWith, switchMap, tap } from 'rxjs/operators';
 import counter from '../shared/counter';
 import onReady from '../shared/onReady';
 import API, { APIInterface } from './api';
@@ -24,11 +17,13 @@ export default function problem2(api: APIInterface = new API()): HTMLElement {
     resetCreateTodoInput,
   } = update;
 
-  createNewTodo
-    .pipe(
+  merge(
+    createNewTodo.pipe(
       tap(() => resetCreateTodoInput()),
       flatMap((title) => defer(() => api.createTodo({ title })))
-    )
+    ),
+    deleteTodo.pipe(flatMap((todo) => defer(() => api.deleteTodo(todo))))
+  )
     .pipe(
       startWith(null),
       switchMap((x) =>
@@ -37,34 +32,20 @@ export default function problem2(api: APIInterface = new API()): HTMLElement {
           distinctUntilChanged()
         )
       ),
-      // flatMap instead
-      switchMap((numberOfPages) =>
+      flatMap((numberOfPages) =>
         counter(nextPage, prevPage, 1).pipe(
           startWith(1),
           tap(() => {
             setNextPageButtonEnabled(false);
             setPrevPageButtonEnabled(false);
           }),
-          // flatMap
-          switchMap((page) =>
-            merge(
-              of(page),
-              // move to merge with createNewTodo
-              deleteTodo.pipe(
-                debounceTime(300), // remove me
-                flatMap((todo) => defer(() => api.deleteTodo(todo))),
-                flatMap(() => of(page))
-              )
-            ).pipe(
-              flatMap(() =>
-                defer(() => api.getTodos(page)).pipe(
-                  tap(() => {
-                    setNextPageButtonEnabled(page < numberOfPages);
-                    setPrevPageButtonEnabled(page > 1);
-                    setCurrentPage(page);
-                  })
-                )
-              )
+          flatMap((page) =>
+            defer(() => api.getTodos(page)).pipe(
+              tap(() => {
+                setNextPageButtonEnabled(page < numberOfPages);
+                setPrevPageButtonEnabled(page > 1);
+                setCurrentPage(page);
+              })
             )
           )
         )
