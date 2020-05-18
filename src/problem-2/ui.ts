@@ -1,5 +1,5 @@
 import { html, list, RedomComponent, setAttr, setChildren, text } from 'redom';
-import { fromEvent, Observable } from 'rxjs';
+import { fromEvent, Observable, Subject } from 'rxjs';
 import { Todo } from './api';
 import { filter, map } from 'rxjs/operators';
 
@@ -8,9 +8,11 @@ type Events = {
   nextPage: Observable<Event>;
   prevPage: Observable<Event>;
   createNewTodo: Observable<string>;
+  deleteTodo: Observable<Todo>;
 };
 type Update = {
   showTodos: (todos: Todo[]) => void;
+  showError: (error: Error) => void;
   setNextPageButtonEnabled: (enabled: boolean) => void;
   setPrevPageButtonEnabled: (enabled: boolean) => void;
   setCurrentPage: (page: number) => void;
@@ -21,14 +23,30 @@ class TodoItem implements RedomComponent {
   el: HTMLLIElement;
 
   constructor() {
-    this.el = html('li', { style: { 'list-style': 'none' } });
+    this.el = html('li', {
+      style: { 'list-style': 'none' },
+      'data-testid': 'todo',
+    });
   }
 
-  update({ title, completed }: Todo): void {
+  update(
+    todo: Todo,
+    _index: number,
+    _items: Todo[],
+    { deleteTodo }: { deleteTodo: (todo: Todo) => void }
+  ): void {
+    const { title, completed } = todo;
     const truncated = title.length > 50 ? `${title.substr(0, 50)}…` : title;
+    const deleteButton = html('button', {
+      textContent: 'Delete',
+      'data-testid': 'delete',
+    });
+    deleteButton.onclick = (): void => deleteTodo(todo);
+
     setChildren(this.el, [
       html('input', { type: 'checkbox', checked: completed, disabled: true }),
-      text(` ${truncated}`),
+      text(` ${truncated} `),
+      deleteButton,
     ]);
   }
 }
@@ -50,6 +68,7 @@ export default function createUI(): UI {
   const setCurrentPage: Update['setCurrentPage'] = (page) =>
     setAttr(currentPage, 'textContent', `Page: ${page}`);
 
+  const deleteTodo = new Subject<Todo>();
   const todoList = list(
     html('ul', {
       'data-testid': 'todoList',
@@ -57,7 +76,10 @@ export default function createUI(): UI {
     }),
     TodoItem
   );
-  const showTodos: Update['showTodos'] = (todos) => todoList.update(todos);
+  const showTodos: Update['showTodos'] = (todos) =>
+    todoList.update(todos, {
+      deleteTodo: (todo: Todo) => deleteTodo.next(todo),
+    });
 
   const createTodoInput = html('input', {
     type: 'text',
@@ -76,30 +98,58 @@ export default function createUI(): UI {
     setAttr(createTodoInput, 'value', '');
   };
 
-  return [
-    html('main', [
-      html('section', [
-        html('header', [
-          html('h2', 'Todos'),
-          html('p', createTodoInput),
-          html('p'),
-        ]),
-        todoList,
+  const ui = html('main', [
+    html('section', [
+      html('header', [
+        html('h2', 'Todos'),
+        html('p', createTodoInput),
+        html('p'),
       ]),
-      html(
-        'footer',
-        html('nav', [
-          currentPage,
-          text('  '),
-          prevPageButton,
-          text('  '),
-          nextPageButton,
-        ])
-      ),
+      todoList,
     ]),
-    { nextPage, prevPage, createNewTodo },
+    html(
+      'footer',
+      html('nav', [
+        currentPage,
+        text('  '),
+        prevPageButton,
+        text('  '),
+        nextPageButton,
+      ])
+    ),
+  ]);
+  const showError: Update['showError'] = (error) => {
+    const reloadButton = html('button', { textContent: 'Restart' });
+    reloadButton.onclick = (): void => location.reload();
+
+    setChildren(ui, [
+      html('section', [
+        html('h2', { textContent: 'Oh noes! 🤯' }),
+        html('p', { textContent: 'Something went wrong.' }),
+        html('p', [
+          html('code', {
+            textContent:
+              error.name && error.message
+                ? `${error.name}: ${error.message}`
+                : JSON.stringify(error),
+          }),
+        ]),
+        reloadButton,
+      ]),
+    ]);
+  };
+
+  return [
+    ui,
+    {
+      nextPage,
+      prevPage,
+      createNewTodo,
+      deleteTodo: deleteTodo.asObservable(),
+    },
     {
       showTodos,
+      showError,
       setNextPageButtonEnabled,
       setPrevPageButtonEnabled,
       setCurrentPage,

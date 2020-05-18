@@ -9,13 +9,14 @@ export type Todo = {
 };
 
 function randomInt(min: number, max: number): number {
-  return Math.random() * (min - max) + min;
+  return Math.floor(Math.random() * (min - max) + min);
 }
 
 export interface APIInterface {
   getNumberOfPages(): Promise<number>;
   getTodos(page?: number): Promise<Todo[]>;
   createTodo(todo: Omit<Todo, 'id' | 'completed'>): Promise<Todo>;
+  deleteTodo(todo: Todo): Promise<void>;
 }
 
 class API implements APIInterface {
@@ -24,7 +25,7 @@ class API implements APIInterface {
   async getNumberOfPages(): Promise<number> {
     return new Promise((resolve) =>
       setTimeout(
-        () => resolve(Math.ceil(todosFixture.length / PAGE_SIZE)),
+        () => resolve(Math.ceil(this.data.length / PAGE_SIZE)),
         randomInt(500, 1000)
       )
     );
@@ -56,6 +57,23 @@ class API implements APIInterface {
         this.data = [newTodo, ...this.data];
         resolve(newTodo);
       }, randomInt(500, 1000));
+    });
+  }
+
+  async deleteTodo({ id }: Todo): Promise<void> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const index = this.data.findIndex((x) => x.id === id);
+        if (index > -1) {
+          this.data = [
+            ...this.data.slice(0, index),
+            ...this.data.slice(index + 1),
+          ];
+          resolve();
+        } else {
+          reject(new Error(`Could not find todo with id ${id}`));
+        }
+      }, randomInt(300, 700));
     });
   }
 }
