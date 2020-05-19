@@ -28,8 +28,8 @@
   "scripts": {
     "start": "webpack-dev-server --open --port 3000",
     "test": "jest",
-    "test:one": "yarn test case-1",
-    "test:two": "yarn test case-2",
+    "test:one": "yarn test problem-1",
+    "test:two": "yarn test problem-2",
     "lint": "eslint ./src --ext .js,.jsx,.ts,.tsx"
   }
 }
