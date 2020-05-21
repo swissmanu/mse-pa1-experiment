@@ -31,7 +31,7 @@ describe('Problem 1', () => {
       value = await queries.findByTestId(app, 'value');
     });
 
-    test('shows no value at start', () => {
+    test('shows "Ready" at start', () => {
       expect(value.textContent).toEqual('Ready');
     });
 
