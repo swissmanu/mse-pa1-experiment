@@ -1,6 +1,6 @@
 # Controlled Experiment "Validate Debugging Techniques"
 
-> This repository is part of my master's study research regarding "Debugging of RxJS-based Frontend Web Applications". It contains the source code for two problems used during the controlled experiment to validate the debugging techniques software engineers apply when debugging RxJS-based programs.
+> This repository is part of my master's study research regarding "Debugging of RxJS-based Frontend Web Applications". It contains the source code for two problems used during the observational study to validate the debugging techniques software engineers apply when debugging RxJS-based programs.
 
 ## Commands
 
