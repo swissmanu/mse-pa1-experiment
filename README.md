@@ -15,4 +15,4 @@ yarn test problem-2 --watch  # Rerun tests upon changes for problem 2
 
 ## References
 
-- Related Workshop Paper: https://github.com/swissmanu/mse-pa1-paper-debugging-of-rxjs-based-frontend-web-applications
+- Related Workshop Paper: https://github.com/swissmanu/mse-pa1-paper-debugging-of-rxjs-based-applications
